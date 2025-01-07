@@ -22,6 +22,10 @@ export default {
                 console.log("We are Logged In")
                 const data = await res.json()
                 console.log(data)
+                localStorage.setItem('user', JSON.stringify(data))
+                 
+                this.$store.commit('setUser')
+                this.$router.push('/services')
             }
         }
     }

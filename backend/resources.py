@@ -78,8 +78,8 @@ class ProfessionalAPI(Resource):
 
     @auth_required('token')
     @marshal_with(professional_fields)
-    def get(self, prof_id):
-        prof = Professional.query.get(prof_id)
+    def get(self, service_id):
+        prof = Professional.query.filter_by(service_id=service_id, accepted=1).all()
         return prof
 
 
@@ -118,7 +118,7 @@ class ProfessionalListAPI(Resource):
         return {"msg": "Added Succesfully"}
     
 api.add_resource(ProfessionalListAPI, "/prof")
-api.add_resource(ProfessionalAPI, '/prof/<int:prof_id>')
+api.add_resource(ProfessionalAPI, '/prof/<int:service_id>')
 
 
 class AdminAPI(Resource):
