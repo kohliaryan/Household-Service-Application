@@ -4,10 +4,15 @@ from backend.models import User, db
 from datetime import datetime
 
 datastore = app.security.datastore
-
+# cache = app.cache
 @app.get('/')
 def home():
     return render_template('index.html')
+
+@app.get('/cache')
+# @cache.cached(timeout = 5)
+def celery():
+    return {'time' : str(datetime.now())}
 
 @app.get('/protected')
 @auth_required('token')

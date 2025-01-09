@@ -14,7 +14,7 @@ export default {
                 <strong>Time Required:</strong> {{ time_required }} minutes
               </p>
               <button 
-                @click="$router.push('/services/' + id)" 
+                @click="$router.push('/service/' + id)" 
                 class="btn btn-primary">
                 View Details
               </button>

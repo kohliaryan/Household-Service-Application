@@ -79,7 +79,7 @@ class ProfessionalAPI(Resource):
     @auth_required('token')
     @marshal_with(professional_fields)
     def get(self, service_id):
-        prof = Professional.query.filter_by(service_id=service_id, accepted=1).all()
+        prof = Professional.query.filter_by(service_id = service_id).all()
         return prof
 
 
@@ -117,8 +117,6 @@ class ProfessionalListAPI(Resource):
 
         return {"msg": "Added Succesfully"}
     
-api.add_resource(ProfessionalListAPI, "/prof")
-api.add_resource(ProfessionalAPI, '/prof/<int:service_id>')
 
 
 class AdminAPI(Resource):
@@ -145,9 +143,6 @@ class AdminListAPI(Resource):
             return {"msg": "Not Allowed"}, 400
         professionals = Professional.query.filter_by(accepted= False).all()
         return professionals
-
-api.add_resource(AdminAPI, '/accept/<int:prof_id>')
-api.add_resource(AdminListAPI, '/unprof')
 
 request_fields = {
     'id': fields.Integer,
@@ -217,3 +212,7 @@ api.add_resource(ServiceAPI, '/services/<int:service_id>')
 api.add_resource(ServiceListAPI, '/services')
 api.add_resource(RequestAPI, '/request/<int:service_id>')
 api.add_resource(RequestListAPI, '/request')
+api.add_resource(AdminAPI, '/accept/<int:prof_id>')
+api.add_resource(AdminListAPI, '/unprof')
+api.add_resource(ProfessionalListAPI, "/prof")
+api.add_resource(ProfessionalAPI, '/prof/<int:service_id>')

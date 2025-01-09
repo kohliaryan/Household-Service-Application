@@ -23,9 +23,6 @@ export default {
   async mounted() {
     try {
       const res = await fetch(location.origin + "/api/services", {
-        headers: {
-          Authorization: this.$store.state.auth_token,
-        },
       });
       this.services = await res.json();
       console.log(this.services);
