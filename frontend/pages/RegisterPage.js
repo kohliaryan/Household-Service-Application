@@ -60,22 +60,53 @@ export default {
   },
   methods: {
     async submitRegister() {
-      const res = await fetch(location.origin + '/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: this.email, password: this.password, role: this.role }),
-      });
-      const data = await res.json();
-      console.log(data)
-      if (res.ok) {
-        if(this.role === "Customer"){
-          this.$router.push('/customerCompleteProfile');
+      try {
+        // Step 1: Register the user
+        const res = await fetch(location.origin + "/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: this.email,
+            password: this.password,
+            role: this.role,
+          }),
+        });
+  
+        const registerData = await res.json();
+  
+        if (!res.ok) {
+          alert(registerData.msg);
+          return;
         }
-        this.$router.push('/professionalCompleteProfile');
-      }
-      else {
-        alert(data.msg)
+  
+        // Step 2: Login the user
+        const res_login = await fetch(location.origin + "/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: this.email, password: this.password }),
+        });
+  
+        const loginData = await res_login.json();
+  
+        if (!res_login.ok) {
+          alert(loginData.msg || "Login failed!");
+          return;
+        }
+  
+        console.log("We are Logged In");
+        localStorage.setItem("user", JSON.stringify(loginData));
+        this.$store.commit("setUser");
+  
+        // Step 3: Navigate based on the user's role
+        if (this.role === "Customer") {
+          this.$router.push("/customerCompleteProfile");
+        } else if (this.role === "Professional") {
+          this.$router.push("/professionalCompleteProfile");
+        }
+      } catch (error) {
+        console.error("Error during registration or login:", error);
+        alert("An error occurred. Please try again.");
       }
     },
-  },
+  },  
 };

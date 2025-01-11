@@ -11,32 +11,31 @@ const store = new Vuex.Store({
     setUser(state) {
       try {
         if (JSON.parse(localStorage.getItem("user"))) {
-            const user = JSON.parse(localStorage.getItem('user'));
-            state.auth_token = user.token;
-            state.role = user.role;
-            state.user_id = user.id;
-            state.loggedIn = true;
+          const user = JSON.parse(localStorage.getItem("user"));
+          state.auth_token = user.token;
+          state.role = user.role;
+          state.user_id = user.id;
+          state.loggedIn = true;
         }
       } catch {
-        console.warn("Not Logged In")
+        console.warn("Not Logged In");
       }
     },
 
-    logout(state){
-        state.auth_token = null;
-        state.role = null;
-        state.loggedIn = false;
-        state.user_id = null;
+    logout(state) {
+      state.auth_token = null;
+      state.role = null;
+      state.loggedIn = false;
+      state.user_id = null;
 
-        localStorage.removeItem('user')
-
-    }
+      localStorage.removeItem("user");
+    },
   },
   actions: {
     // actions commit mutations can be async
   },
 });
 
-store.commit('setUser')
+store.commit("setUser");
 
 export default store;

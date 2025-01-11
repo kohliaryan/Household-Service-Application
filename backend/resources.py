@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import jsonify, request
 from flask_restful import Api, Resource, fields, marshal_with
 from flask_security import auth_required, current_user
-from backend.models import Professional, Service, db, Request, UserRoles, make_user_professional
+from backend.models import Professional, Service, User, db, Request, UserRoles, make_user_professional
 
 api = Api(prefix='/api')
 
@@ -15,13 +15,6 @@ service_fields = {
 }
 
 class ServiceAPI(Resource):
-    @auth_required('token')
-    @marshal_with(service_fields)
-    def get(self, service_id):
-        service = Service.query.get(service_id)
-        if not service:
-            return {"msg": "Service not Found"}, 404
-        return service
         
     @auth_required('token')
     def delete(self, service_id):
@@ -38,7 +31,7 @@ class ServiceAPI(Resource):
         return {"msg": "Service Deleted Successfully"}, 200
 
 class ServiceListAPI(Resource):
-    @auth_required('token')
+
     @marshal_with(service_fields)
     def get(self):
         services = Service.query.all()
@@ -90,50 +83,7 @@ class ProfessionalListAPI(Resource):
     def get(self):
         professionals = Professional.query.filter_by(accepted= True).all()
         return professionals
-
-    @auth_required('token')
-    def post(self):
-        role = UserRoles.query.filter_by(user_id=current_user.id).first()
-        if role.role_id != 2:
-            return {"msg": "Not Allowed"}, 400
-
-        data = request.get_json()
-        name = data.get('name')
-        pincode = data.get('pincode')
-        address = data.get('address')
-        experience = data.get('experience')
-        description = data.get('description')
-        service_id = data.get('service_id')
-
-        if not name or not pincode or not address or not experience or not description or not service_id:
-            return {"msg": "Invalid Inputs"}, 400
-
-        service = Service.query.filter_by(id = service_id).first()
-
-        if not service:
-            return {"msg" : "Invalid Service"}, 400
-        
-        make_user_professional(user_id= current_user.id, name=name, pincode=pincode, address=address, experience=experience, description=description, service_id=service_id)
-
-        return {"msg": "Added Succesfully"}
     
-
-
-class AdminAPI(Resource):
-
-    @auth_required('token')
-    def put(self, prof_id):
-        if current_user.email !="aryan@iit.com":
-            return {"msg": "Not Allowed"}, 400
-
-        prof = Professional.query.get(prof_id)
-        if prof:
-            prof.accepted = True
-            db.session.commit()
-
-            return {"msg": "Accepted Succefully"}
-        else:
-            return {"msg": "Professional not found"}
 
 class AdminListAPI(Resource):
     @auth_required('token')
@@ -152,23 +102,10 @@ request_fields = {
     'date_of_request': fields.DateTime,
     'date_of_completion': fields.DateTime,
     'service_status': fields.String,
-    'remarks' : fields.String
+    'remarks': fields.String,
+    'service_name': fields.String,  
+    'professional_name': fields.String  
 }
-
-class RequestAPI(Resource):
-
-    @auth_required('token')
-    @marshal_with(request_fields)
-    def get(self, service_id):
-
-        request = Request.query.get(service_id)
-        if not request:
-            return {"msg": "Request not Found"}, 404
-        
-        if request.customer_id != current_user.id:
-            return {"msg": "Not Allowed"}, 400
-    
-        return request
 
 class RequestListAPI(Resource):
     @auth_required('token')
@@ -177,8 +114,92 @@ class RequestListAPI(Resource):
         role = UserRoles.query.filter_by(user_id=current_user.id).first()
         if role.role_id != 3:
             return {"msg": "Not Allowed"}, 400
-        requests = Request.query.filter_by(customer_id = current_user.id)
-        return requests
+
+        # Query all requests for the current user
+        requests = Request.query.filter_by(customer_id=current_user.id).all()
+
+        result = []
+        for req in requests:
+            # Get service details
+            service = Service.query.filter_by(id=req.service_id).first()
+            service_name = service.name if service else None
+
+            # Get professional details
+            professional = Professional.query.filter_by(id=req.professional_id).first()
+            professional_name = professional.name if professional else None
+
+            # Append request data with service and professional names
+            result.append({
+                "id": req.id,
+                "service_id": req.service_id,
+                "customer_id": req.customer_id,
+                "professional_id": req.professional_id,
+                "date_of_request": req.date_of_request,
+                "date_of_completion": req.date_of_completion,
+                "service_status": req.service_status,
+                "remarks": req.remarks,
+                "service_name": service_name,
+                "professional_name": professional_name,
+            })
+
+        return result
+    @auth_required('token')
+    def delete(self):
+        # Check if the user has the appropriate role
+        role = UserRoles.query.filter_by(user_id=current_user.id).first()
+        if role.role_id != 2:  # Assuming role_id 2 is authorized to delete requests
+            return {"msg": "Not Allowed"}, 400
+
+        # Get the request ID from the JSON payload
+        data = request.get_json()
+        request_id = data.get('request_id')
+
+        if not request_id:
+            return {"msg": "Request ID is required"}, 400
+
+        # Query the request
+        req = Request.query.filter_by(id=request_id).first()
+
+        if not req:
+            return {"msg": "Request not found"}, 404
+
+        # Delete the request
+        db.session.delete(req)
+        db.session.commit()
+
+        return {"msg": "Request deleted successfully"}, 200
+    
+    @auth_required('token')
+    def put(self):
+        # Check if the user has the appropriate role
+        role = UserRoles.query.filter_by(user_id=current_user.id).first()
+        if role.role_id != 2:  # Assuming role_id 2 is authorized to accept requests
+            return {"msg": "Not Allowed"}, 400
+
+        # Get the request ID from the JSON payload
+        data = request.get_json()
+        request_id = data.get('request_id')
+
+        if not request_id:
+            return {"msg": "Request ID is required"}, 400
+
+        # Query the request
+        req = Request.query.filter_by(id=request_id).first()
+
+        if not req:
+            return {"msg": "Request not found"}, 404
+
+        # Ensure the request is in a valid state for accepting
+        if req.service_status != "requested":
+            return {"msg": "Request cannot be accepted as it is not in the 'requested' state"}, 400
+
+        # Assign the current user (professional) to the request
+        req.professional_id = current_user.id
+        req.service_status = "assigned"
+
+        db.session.commit()
+
+        return {"msg": "Request accepted successfully", "request_id": req.id}, 200
     
     @auth_required('token')
     def post(self):
@@ -186,33 +207,26 @@ class RequestListAPI(Resource):
         if role.role_id != 3:
             return {"msg": "Not Allowed"}, 400
         data = request.get_json()
-        service_id = data.get('service_id')
         professional_id = data.get('professional_id')
 
-        if not service_id:
-            return {'msg': 'Invalid Inputs'}, 400
-        
-        service = Service.query.get(service_id)
-
-        if not service:
-            return {'msg': 'Service Not Found'}, 404
         
         prof = Professional.query.get(professional_id)
 
         if not prof or not prof.accepted:
             return {'msg': 'Professional Not Avaiable'}, 404
+        service_id = prof.service_id
         
         req = Request(service_id= service_id, customer_id= current_user.id, professional_id= professional_id, date_of_request=datetime.now(), service_status= "requested")
 
         db.session.add(req)
         db.session.commit()
         return {"msg": "Request Created Succesfully"}, 200
+    
+
 
 api.add_resource(ServiceAPI, '/services/<int:service_id>')
 api.add_resource(ServiceListAPI, '/services')
-api.add_resource(RequestAPI, '/request/<int:service_id>')
-api.add_resource(RequestListAPI, '/request')
-api.add_resource(AdminAPI, '/accept/<int:prof_id>')
-api.add_resource(AdminListAPI, '/unprof')
-api.add_resource(ProfessionalListAPI, "/prof")
-api.add_resource(ProfessionalAPI, '/prof/<int:service_id>')
+api.add_resource(RequestListAPI, '/request') # Used to see all requests to customers and also to Post request and also by professional to delete or accept a particular request
+api.add_resource(AdminListAPI, '/unprof') # Used by admin to see all customer
+api.add_resource(ProfessionalListAPI, "/prof") # Used to see all accepted professional to customers
+api.add_resource(ProfessionalAPI, '/prof/<int:service_id>') # Used to see all accepted professional to customers for that particular service

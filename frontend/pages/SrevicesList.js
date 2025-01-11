@@ -22,8 +22,7 @@ export default {
   },
   async mounted() {
     try {
-      const res = await fetch(location.origin + "/api/services", {
-      });
+      const res = await fetch(location.origin + "/api/services");
       this.services = await res.json();
       console.log(this.services);
     } catch (error) {
