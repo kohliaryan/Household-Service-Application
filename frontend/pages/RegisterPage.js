@@ -71,32 +71,32 @@ export default {
             role: this.role,
           }),
         });
-  
+
         const registerData = await res.json();
-  
+
         if (!res.ok) {
           alert(registerData.msg);
           return;
         }
-  
+
         // Step 2: Login the user
         const res_login = await fetch(location.origin + "/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: this.email, password: this.password }),
         });
-  
+
         const loginData = await res_login.json();
-  
+
         if (!res_login.ok) {
           alert(loginData.msg || "Login failed!");
           return;
         }
-  
+
         console.log("We are Logged In");
         localStorage.setItem("user", JSON.stringify(loginData));
         this.$store.commit("setUser");
-  
+
         // Step 3: Navigate based on the user's role
         if (this.role === "Customer") {
           this.$router.push("/customerCompleteProfile");
@@ -108,5 +108,5 @@ export default {
         alert("An error occurred. Please try again.");
       }
     },
-  },  
+  },
 };

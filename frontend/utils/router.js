@@ -5,10 +5,14 @@ import SrevicesList from "../pages/SrevicesList.js";
 import ServiceDisplay from "../pages/ServiceDisplay.js";
 import store from "./store.js";
 import AdminDashboard from "../pages/admin/AdminDashboard.js";
-import CompleteProfileCustomer from "../pages/CompleteProfileCustomer.js";
-import CompleteProfileProf from "../pages/CompleteProfileProf.js";
+import CompleteProfileCustomer from "../pages/customer/CompleteProfileCustomer.js";
+import CompleteProfileProf from "../pages/prof/CompleteProfileProf.js";
 import ProfManagement from "../pages/admin/ProfManagement.js";
-import CustomerRequest from "../pages/CustomerRequest.js";
+import CustomerRequest from "../pages/customer/CustomerRequest.js";
+import ProfDashbord from "../pages/prof/ProfDashbord.js";
+import ReqProfessional from "../pages/prof/ReqProfessional.js";
+import NewService from "../pages/admin/NewService.js";
+import Block from "../pages/admin/Block.js";
 
 const Home = {
   template: `<h1> This is Home </h1>`,
@@ -33,6 +37,11 @@ const routes = [
   { path: "/professionalCompleteProfile", component: CompleteProfileProf },
   { path: "/profManagement", component: ProfManagement,  meta: { requiresLogin: true, role: "Admin" }},
   { path: "/request", component: CustomerRequest },
+  { path: "/profDashboard", component: ProfDashbord },
+  { path: "/reqManagement", component: ReqProfessional,  meta: { requiresLogin: true, role: "Professional" }},
+  { path: "/newService", component: NewService,  meta: { requiresLogin: true, role: "Admin" }},
+  { path: "/blockUser", component: Block,  meta: { requiresLogin: true, role: "Admin" }},
+
 ];
 const router = new VueRouter({
   routes,

@@ -57,7 +57,7 @@ export default {
           console.log(data);
           localStorage.setItem('user', JSON.stringify(data));
           this.$store.commit('setUser');
-          this.$router.push('/services');
+          this.$router.push('/');
         }
       },
     },

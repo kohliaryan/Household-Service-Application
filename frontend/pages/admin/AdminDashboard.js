@@ -1,8 +1,33 @@
-export default{
+export default {
     template: `
-        <div>
-            <h1>Welcome Admin,</h1>
-            <router-link to='/profManagement'>Professional Management</router-link>
+        <div class="container mt-5">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="text-center">Welcome Admin</h1>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <router-link 
+                            to="/profManagement" 
+                            class="list-group-item list-group-item-action">
+                            New Professional Acceptance
+                        </router-link>
+                        <router-link 
+                            to="/newService" 
+                            class="list-group-item list-group-item-action">
+                            Add New Service
+                        </router-link>
+                        <router-link 
+                            to="/blockUser" 
+                            class="list-group-item list-group-item-action">
+                            Block/Unblock an Existing User
+                        </router-link>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <small class="text-muted">Made by Aryan Kohli | 22f3001832</small>
+                </div>
+            </div>
         </div>
-        `
+    `
 }

@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import jsonify, request
 from flask_restful import Api, Resource, fields, marshal_with
 from flask_security import auth_required, current_user
-from backend.models import Professional, Service, User, db, Request, UserRoles, make_user_professional
+from backend.models import Customer, Professional, Service, User, db, Request, UserRoles, make_user_professional
 
 api = Api(prefix='/api')
 
@@ -72,7 +72,7 @@ class ProfessionalAPI(Resource):
     @auth_required('token')
     @marshal_with(professional_fields)
     def get(self, service_id):
-        prof = Professional.query.filter_by(service_id = service_id).all()
+        prof = Professional.query.filter_by(service_id = service_id, accepted= True).all()
         return prof
 
 
@@ -81,6 +81,8 @@ class ProfessionalListAPI(Resource):
     @auth_required('token')
     @marshal_with(professional_fields)
     def get(self):
+        if current_user.accepted == False:
+            return {"msg": "You are Blocked by Admin"}, 403
         professionals = Professional.query.filter_by(accepted= True).all()
         return professionals
     
@@ -104,7 +106,9 @@ request_fields = {
     'service_status': fields.String,
     'remarks': fields.String,
     'service_name': fields.String,  
-    'professional_name': fields.String  
+    'professional_name': fields.String ,
+    "customer_address": fields.String,
+    "customer_name": fields.String 
 }
 
 class RequestListAPI(Resource):
@@ -112,11 +116,13 @@ class RequestListAPI(Resource):
     @marshal_with(request_fields)
     def get(self):
         role = UserRoles.query.filter_by(user_id=current_user.id).first()
-        if role.role_id != 3:
-            return {"msg": "Not Allowed"}, 400
-
+        if role.role_id == 3:
         # Query all requests for the current user
-        requests = Request.query.filter_by(customer_id=current_user.id).all()
+            requests = Request.query.filter_by(customer_id=current_user.id).all()
+        elif role.role_id == 2:
+            requests = Request.query.filter_by(professional_id=current_user.id).all()
+        else:
+            return {"msg": "Not Allowed"}, 400
 
         result = []
         for req in requests:
@@ -126,7 +132,15 @@ class RequestListAPI(Resource):
 
             # Get professional details
             professional = Professional.query.filter_by(id=req.professional_id).first()
+            if not professional:
+                return {"msg": "Uncompleted Profile"}, 400
             professional_name = professional.name if professional else None
+
+            # Get customer address details:
+            customer = Customer.query.filter_by(id=req.customer_id).first()
+            if not customer:
+                return {"msg": "Uncompleted Profile"}, 400
+            customer_address = customer.address
 
             # Append request data with service and professional names
             result.append({
@@ -140,6 +154,8 @@ class RequestListAPI(Resource):
                 "remarks": req.remarks,
                 "service_name": service_name,
                 "professional_name": professional_name,
+                "customer_address": customer_address,
+                "customer_name": customer.name
             })
 
         return result
@@ -171,9 +187,8 @@ class RequestListAPI(Resource):
     
     @auth_required('token')
     def put(self):
-        # Check if the user has the appropriate role
         role = UserRoles.query.filter_by(user_id=current_user.id).first()
-        if role.role_id != 2:  # Assuming role_id 2 is authorized to accept requests
+        if role.id == 2:  
             return {"msg": "Not Allowed"}, 400
 
         # Get the request ID from the JSON payload
@@ -203,13 +218,15 @@ class RequestListAPI(Resource):
     
     @auth_required('token')
     def post(self):
+        user = User.query.filter_by(id = current_user.id).first()
+        if not user.active:
+            return {"msg": "Blocked User"}, 403
         role = UserRoles.query.filter_by(user_id=current_user.id).first()
         if role.role_id != 3:
             return {"msg": "Not Allowed"}, 400
         data = request.get_json()
         professional_id = data.get('professional_id')
 
-        
         prof = Professional.query.get(professional_id)
 
         if not prof or not prof.accepted:
@@ -221,8 +238,6 @@ class RequestListAPI(Resource):
         db.session.add(req)
         db.session.commit()
         return {"msg": "Request Created Succesfully"}, 200
-    
-
 
 api.add_resource(ServiceAPI, '/services/<int:service_id>')
 api.add_resource(ServiceListAPI, '/services')

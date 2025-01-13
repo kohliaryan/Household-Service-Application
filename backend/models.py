@@ -128,15 +128,7 @@ def make_user_professional(user_id, name, pincode, address, experience, descript
 
 
 def add_service(name, price, time_required, description):
-    """
-    Adds a new service to the Service table.
 
-    :param name: Name of the service.
-    :param price: Price of the service (integer).
-    :param time_required: Time required for the service in minutes.
-    :param description: Description of the service.
-    :return: The newly created Service object.
-    """
     # Check if the service already exists
     existing_service = Service.query.filter_by(name=name).first()
     if existing_service:

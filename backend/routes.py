@@ -1,6 +1,7 @@
 from flask import current_app as app, jsonify, render_template,  request, send_file
 from flask_security import auth_required, verify_password, hash_password, current_user
-from backend.models import Professional, User, db, make_user_customer, make_user_professional
+from flask_restful import fields, marshal_with
+from backend.models import Customer, Professional, Request, User, UserRoles, db, make_user_customer, make_user_professional
 from datetime import datetime
 
 datastore = app.security.datastore
@@ -90,7 +91,125 @@ def profComplete():
 
     return jsonify({'message' : 'Done'}), 200
 
+@auth_required('token')
+@app.put('/api/unblock/<int:user_id>')
+def unblock_user(user_id):
+    # Ensure only authorized user can unblock others
+    if current_user.email != "aryan@iit.com":
+        return {"msg": "Not Allowed"}, 403
 
+    try:
+        # Query the user by ID
+        user = User.query.filter_by(id=user_id).first()
+
+        # If the user does not exist
+        if not user:
+            return {"msg": "User Not Found"}, 404
+
+        # Unblock the user by setting 'active' to True
+        user.active = True
+
+        role = UserRoles.query.filter_by(user_id=user_id).first()
+        if role and role.role_id == 2:  # Professional
+            prof = Professional.query.filter_by(id=user_id).first()
+            if prof:
+                prof.accepted = True
+
+        db.session.commit()
+        return {"msg": "Unblocked Successfully"}, 200
+
+    except Exception as e:
+        # Handle any unexpected errors
+        return {"msg": "An unexpected error occurred", "error": str(e)}, 500
+
+
+@auth_required('token')
+@app.delete('/api/block/<int:user_id>')
+def block_user(user_id):
+    # Ensure only authorized user can block others
+    if current_user.email != "aryan@iit.com":
+        return {"msg": "Not Allowed"}, 403
+
+    try:
+        # Query the user by ID
+        user = User.query.filter_by(id=user_id).first()
+
+        if not user:
+            return {"msg": "User Not Found"}, 404
+
+        role = UserRoles.query.filter_by(user_id=user_id).first()
+        if role:
+            if role.role_id == 2:  # Professional
+                # Delete related requests and update professional's status
+                Request.query.filter_by(professional_id=user_id, service_status="requested").delete()
+                Request.query.filter_by(professional_id=user_id, service_status="assigned").delete()
+                prof = Professional.query.filter_by(id=user_id).first()
+                if prof:
+                    prof.accepted = False
+
+            elif role.role_id == 3:  # Customer
+                # Delete related requests for the customer
+                Request.query.filter_by(customer_id=user_id, service_status="requested").delete()
+                Request.query.filter_by(customer_id=user_id, service_status="assigned").delete()
+
+        # Block the user by setting 'active' to False
+        user.active = False
+        db.session.commit()
+        return {"msg": "Blocked Successfully"}, 200
+
+    except Exception as e:
+        # Handle any unexpected errors
+        return {"msg": "An unexpected error occurred", "error": str(e)}, 500
+
+user_fields = {
+    'id': fields.Integer,
+    'email': fields.String,
+    'name': fields.String,
+    'role': fields.String,
+    'address': fields.String,
+    'pincode': fields.String,
+    'active': fields.Boolean
+}
+
+@auth_required('token')
+@marshal_with(user_fields)
+@app.get('/api/user')
+def allUser():
+    if current_user.email != "aryan@iit.com":
+        return {"msg": "Not Allowed"}, 403
+    
+    users = User.query.all()
+    results = []
+    for user in users:
+        u = {}
+        u["id"] = user.id
+        u["email"] = user.email
+        u["active"] = user.active
+        role_id = UserRoles.query.filter_by(user_id = user.id).first().role_id
+
+        if role_id == 1:
+            continue
+
+        if role_id == 2:
+            u["role"] = "Professional"
+            prof = Professional.query.filter_by(id= user.id).first()
+            if not prof:
+                continue
+            u["address"] = prof.address
+            u["pincode"] = prof.pincode
+            u["name"] = prof.name
+        elif role_id == 3:
+            u["role"] = "Customer"
+            cust = Customer.query.filter_by(id= user.id).first()
+            if not cust:
+                continue
+            u["name"] = cust.name
+            u["address"] = cust.address
+            u["pincode"] = cust.pincode
+        results.append(u)
+        
+    return results
+    
 @app.route('/login', methods=["POST"])
 def login():
     data = request.get_json()
@@ -101,10 +220,13 @@ def login():
     if not email or not password:
         return jsonify({"msg" : "Invalid Inputs"}), 400
     
-    user = datastore.find_user(email = email)
+    user = User.query.filter_by(email = email).first()
 
     if not user:
         return jsonify({"msg" : "User not exsist"}), 400
+    
+    if user.active == False:
+        return jsonify({"msg" : "Blocked User"}), 403
     
     if verify_password(password, user.password):
         return jsonify({'token' : user.get_auth_token(), 'email' : user.email, 'role' : user.roles[0].name, 'id' : user.id})
