@@ -13,6 +13,9 @@ import ProfDashbord from "../pages/prof/ProfDashbord.js";
 import ReqProfessional from "../pages/prof/ReqProfessional.js";
 import NewService from "../pages/admin/NewService.js";
 import Block from "../pages/admin/Block.js";
+import EditService from "../pages/admin/EditService.js";
+import EditServiceDisplay from "../pages/admin/EditServiceDisplay.js";
+import ProfileEdit from "../pages/customer/ProfileEdit.js";
 
 const Home = {
   template: `<h1> This is Home </h1>`,
@@ -41,6 +44,9 @@ const routes = [
   { path: "/reqManagement", component: ReqProfessional,  meta: { requiresLogin: true, role: "Professional" }},
   { path: "/newService", component: NewService,  meta: { requiresLogin: true, role: "Admin" }},
   { path: "/blockUser", component: Block,  meta: { requiresLogin: true, role: "Admin" }},
+  { path: "/editService", component: EditService,  meta: { requiresLogin: true, role: "Admin" }},
+  { path: "/editService/:id", component: EditServiceDisplay,  meta: { requiresLogin: true, role: "Admin" }},
+  { path: "/custProfile", component: ProfileEdit,  meta: { requiresLogin: true, role: "Customer" }}
 
 ];
 const router = new VueRouter({

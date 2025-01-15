@@ -15,11 +15,50 @@ service_fields = {
 }
 
 class ServiceAPI(Resource):
+
+    @marshal_with(service_fields)
+    def get(self, service_id):
+        service = Service.query.get(service_id)
+        return service
         
+    @auth_required('token')
+    def put(self, service_id):
+        # Check if user is authorized
+        if current_user.email != "aryan@iit.com":
+            return {"msg": "Not Allowed"}, 403
+
+        # Parse request data
+        data = request.get_json()
+        description = data.get("description")
+        price = data.get("price")
+        time_required = data.get("time_required")
+
+        # Find the service by ID
+        service = Service.query.get(service_id)
+        if not service:
+            return {"msg": "Service not found"}, 404
+
+        # Update the service details
+        if description:
+            service.description = description
+        if price:
+            service.price = price
+        if time_required:
+            service.time_required = time_required
+
+        # Commit the changes to the database
+        try:
+            db.session.commit()
+            return {"msg": "Updated Successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"msg": "Failed to update service", "error": str(e)}, 500
+
+
     @auth_required('token')
     def delete(self, service_id):
         if current_user.email != "aryan@iit.com":
-            return {"msg": "Not Allowed"}, 400
+            return {"msg": "Not Allowed"}, 403
         
         service = Service.query.get(service_id)
 
@@ -29,6 +68,8 @@ class ServiceAPI(Resource):
         db.session.delete(service)
         db.session.commit()
         return {"msg": "Service Deleted Successfully"}, 200
+    
+    
 
 class ServiceListAPI(Resource):
 
@@ -133,13 +174,13 @@ class RequestListAPI(Resource):
             # Get professional details
             professional = Professional.query.filter_by(id=req.professional_id).first()
             if not professional:
-                return {"msg": "Uncompleted Profile"}, 400
-            professional_name = professional.name if professional else None
+                return {"remark": "Uncompleted Profile"}, 400
+            professional_name = professional.name
 
             # Get customer address details:
             customer = Customer.query.filter_by(id=req.customer_id).first()
             if not customer:
-                return {"msg": "Uncompleted Profile"}, 400
+                return {"remark": "Uncompleted Customer Profile"}, 400
             customer_address = customer.address
 
             # Append request data with service and professional names
@@ -157,8 +198,8 @@ class RequestListAPI(Resource):
                 "customer_address": customer_address,
                 "customer_name": customer.name
             })
-
         return result
+    
     @auth_required('token')
     def delete(self):
         # Check if the user has the appropriate role
@@ -238,6 +279,54 @@ class RequestListAPI(Resource):
         db.session.add(req)
         db.session.commit()
         return {"msg": "Request Created Succesfully"}, 200
+    
+customer_fields = {
+    'id': fields.Integer,
+    'name': fields.String,
+    'pincode': fields.String,
+    'address': fields.String,
+}
+
+class CustomerAPI(Resource):
+
+    @auth_required('token')
+    @marshal_with(customer_fields)
+    def get(self):
+        cust = Customer.query.get(current_user.id)
+        if not cust:
+            return {"msg": "Not Allowed"}
+        return cust
+    
+    @auth_required('token')
+    def put(self):
+
+        # Parse request data
+        data = request.get_json()
+        name = data.get("name")
+        address = data.get("address")
+        pincode = data.get("pincode")
+
+        # Find the service by ID
+        customer = Customer.query.get(current_user.id)
+        if not customer:
+            return {"msg": "Not Authorised"}, 403
+
+        # Update the service details
+        if name:
+            customer.name = name
+        if address:
+            customer.address = address
+        if pincode:
+            customer.pincode = pincode
+
+        # Commit the changes to the database
+        try:
+            db.session.commit()
+            return {"msg": "Updated Successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"msg": "Failed to update service", "error": str(e)}, 500
+
 
 api.add_resource(ServiceAPI, '/services/<int:service_id>')
 api.add_resource(ServiceListAPI, '/services')
@@ -245,3 +334,4 @@ api.add_resource(RequestListAPI, '/request') # Used to see all requests to custo
 api.add_resource(AdminListAPI, '/unprof') # Used by admin to see all customer
 api.add_resource(ProfessionalListAPI, "/prof") # Used to see all accepted professional to customers
 api.add_resource(ProfessionalAPI, '/prof/<int:service_id>') # Used to see all accepted professional to customers for that particular service
+api.add_resource(CustomerAPI, '/cust')

@@ -22,6 +22,12 @@ export default {
                             class="list-group-item list-group-item-action">
                             Block/Unblock an Existing User
                         </router-link>
+                        <router-link 
+                            to="/editService" 
+                            class="list-group-item list-group-item-action">
+                            Edit a Service
+                        </router-link>
+                        
                     </div>
                 </div>
                 <div class="card-footer text-center">
