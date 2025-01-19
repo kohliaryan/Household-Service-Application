@@ -3,9 +3,21 @@ export default {
   template: `
     <div class="container my-5">
       <h2 class="text-center text-primary mb-4">Professionals</h2>
+      
+      <!-- Search Box -->
+      <div class="mb-4">
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Search professionals by pincode..." 
+          v-model="searchQuery" 
+        />
+      </div>
+
+      <!-- Professionals List -->
       <div class="row">
         <div 
-          v-for="professional in professionals" 
+          v-for="professional in filteredProfessionals" 
           :key="professional.id" 
           class="col-md-6 col-lg-4 mb-4">
           <div class="card shadow-lg">
@@ -26,21 +38,42 @@ export default {
           </div>
         </div>
       </div>
+
+      <!-- No Results Found -->
+      <div v-if="filteredProfessionals.length === 0" class="mt-4">
+        <p class="text-danger text-center">No professionals found matching your search.</p>
+      </div>
     </div>
   `,
   data() {
     return {
-      professionals: [],
+      professionals: [], // All professionals fetched from the backend
+      searchQuery: "", // User's input for searching by pincode
     };
   },
+  computed: {
+    filteredProfessionals() {
+      // If searchQuery is empty, show all professionals; otherwise, filter by pincode
+      return this.professionals.filter((professional) =>
+        professional.pincode.includes(this.searchQuery)
+      );
+    },
+  },
   async mounted() {
-    const res = await fetch(`${location.origin}/api/prof/${this.id}`, {
-      headers: {
-        Authorization: this.$store.state.auth_token,
-      },
-    });
-    if (res.ok) {
-      this.professionals = await res.json();
+    try {
+      const res = await fetch(`${location.origin}/api/prof/${this.id}`, {
+        headers: {
+          Authorization: this.$store.state.auth_token,
+        },
+      });
+
+      if (res.ok) {
+        this.professionals = await res.json();
+      } else {
+        console.error("Failed to fetch professionals.");
+      }
+    } catch (err) {
+      console.error("Error fetching professionals:", err);
     }
   },
   methods: {
