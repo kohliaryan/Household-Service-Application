@@ -13,5 +13,5 @@ const app = new Vue({
     Navbar,
   },
   router,
-  store
+  store,
 });

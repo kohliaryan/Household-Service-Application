@@ -10,6 +10,28 @@ datastore = app.security.datastore
 def home():
     return render_template('index.html')
 
+@app.put('/api/complete/<int:req_id>')
+@auth_required('token')
+def complete(req_id):
+    request = Request.query.get(req_id)
+    
+    if not request:
+        return {"msg": "Not Able to Find Request"}, 404
+    
+    if request.customer_id != current_user.id:
+        return {"msg": "Not Allowed"}, 403
+    
+    if request.service_status != "assigned":
+        return {"msg": "Request is not assigned"}, 400
+    
+    # Update the service status and completion date
+    request.service_status = "completed"
+    request.date_of_completion = datetime.utcnow()  
+    db.session.commit()
+    
+    return {"msg": "Updated Successfully"}, 200
+
+
 @app.get('/cache')
 # @cache.cached(timeout = 5)
 def celery():

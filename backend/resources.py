@@ -274,7 +274,7 @@ class RequestListAPI(Resource):
             return {'msg': 'Professional Not Avaiable'}, 404
         service_id = prof.service_id
         
-        req = Request(service_id= service_id, customer_id= current_user.id, professional_id= professional_id, date_of_request=datetime.now(), service_status= "requested")
+        req = Request(service_id= service_id, customer_id= current_user.id, professional_id= professional_id, date_of_request=datetime.utcnow(), service_status= "requested")
 
         db.session.add(req)
         db.session.commit()
@@ -327,6 +327,38 @@ class CustomerAPI(Resource):
             db.session.rollback()
             return {"msg": "Failed to update service", "error": str(e)}, 500
 
+class ReviewAPI(Resource):
+    @auth_required('token')
+    def get(self, request_id):
+        request = Request.query.get(request_id)
+
+        if not request:
+            return {"msg": "Request Not Found"}, 404
+
+        if request.service_status != "completed" or request.customer_id != current_user.id:
+            return {"msg": "Not Allowed"}, 403
+        
+        remark = request.remarks
+        return {"remark": remark}
+    
+    @auth_required('token')
+    def post(self, request_id):
+        req = Request.query.get(request_id)
+
+        if not req:
+            return {"msg": "Request Not Found"}, 404
+        
+        if req.service_status != "completed" or req.customer_id != current_user.id:
+            return {"msg": "Not Allowed"}, 403
+        
+        data = request.get_json()
+        remarks = data.get("remarks")
+
+        req.remarks = remarks
+
+        db.session.commit()
+        return {"msg": "Remark Done"}
+        
 
 api.add_resource(ServiceAPI, '/services/<int:service_id>')
 api.add_resource(ServiceListAPI, '/services')
@@ -335,3 +367,4 @@ api.add_resource(AdminListAPI, '/unprof') # Used by admin to see all customer
 api.add_resource(ProfessionalListAPI, "/prof") # Used to see all accepted professional to customers
 api.add_resource(ProfessionalAPI, '/prof/<int:service_id>') # Used to see all accepted professional to customers for that particular service
 api.add_resource(CustomerAPI, '/cust')
+api.add_resource(ReviewAPI, "/review/<int:request_id>")
