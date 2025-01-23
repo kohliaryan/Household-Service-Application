@@ -10,6 +10,26 @@ datastore = app.security.datastore
 def home():
     return render_template('index.html')
 
+@app.get('/api/profreview/<int:prof_id>')
+@auth_required('token')
+def profreview(prof_id):
+    reqs = Request.query.filter_by(professional_id=prof_id).all()
+    prof = Professional.query.get(prof_id).name
+    
+    reviews = [{"Professional": prof}]
+    for req in reqs:
+        if not req.remarks:
+            continue
+        customer = Customer.query.get(req.customer_id)
+        reviews.append({
+            "cust": {
+                "id": customer.id,
+                "name": customer.name,
+            },
+            "review": req.remarks
+        })
+    return jsonify(reviews)
+
 @app.put('/api/complete/<int:req_id>')
 @auth_required('token')
 def complete(req_id):
@@ -24,7 +44,6 @@ def complete(req_id):
     if request.service_status != "assigned":
         return {"msg": "Request is not assigned"}, 400
     
-    # Update the service status and completion date
     request.service_status = "completed"
     request.date_of_completion = datetime.utcnow()  
     db.session.commit()

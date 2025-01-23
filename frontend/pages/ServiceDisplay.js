@@ -34,12 +34,16 @@ export default {
                 class="btn btn-outline-primary btn-block">
                 Book Now
               </button>
+              <button 
+                @click="viewReviews(professional.id)" 
+                class="btn btn-outline-success btn-block mt-2">
+                View Reviews
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- No Results Found -->
       <div v-if="filteredProfessionals.length === 0" class="mt-4">
         <p class="text-danger text-center">No professionals found matching your search.</p>
       </div>
@@ -53,7 +57,6 @@ export default {
   },
   computed: {
     filteredProfessionals() {
-      // If searchQuery is empty, show all professionals; otherwise, filter by pincode
       return this.professionals.filter((professional) =>
         professional.pincode.includes(this.searchQuery)
       );
@@ -99,6 +102,9 @@ export default {
         console.error("Error:", err);
         alert("An unexpected error occurred.");
       }
+    },
+    viewReviews(professionalId) {
+      this.$router.push(`/profReview/${professionalId}`);
     },
   },
 };

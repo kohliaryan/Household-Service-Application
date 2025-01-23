@@ -17,6 +17,7 @@ import EditService from "../pages/admin/EditService.js";
 import EditServiceDisplay from "../pages/admin/EditServiceDisplay.js";
 import ProfileEdit from "../pages/customer/ProfileEdit.js";
 import Review from "../pages/customer/Review.js";
+import ProfessionalReview from "../pages/ProfessionalReview.js";
 
 const Home = {
   template: `<h1> This is Home </h1>`,
@@ -49,6 +50,8 @@ const routes = [
   { path: "/editService/:id", component: EditServiceDisplay,  meta: { requiresLogin: true, role: "Admin" }},
   { path: "/custProfile", component: ProfileEdit,  meta: { requiresLogin: true, role: "Customer" }},
   { path: "/review/:id", component: Review,  meta: { requiresLogin: true, role: "Customer" }},
+  { path: "/profReview/:id", component: ProfessionalReview,  meta: { requiresLogin: true}},
+
 ];
 const router = new VueRouter({
   routes,
