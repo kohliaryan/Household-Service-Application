@@ -3,6 +3,8 @@ from flask_security import auth_required, verify_password, hash_password, curren
 from flask_restful import fields, marshal_with
 from backend.models import Customer, Professional, Request, Service, User, UserRoles, db, make_user_customer, make_user_professional
 from datetime import datetime
+from backend.celery.tasks import add
+from celery.result import AsyncResult
 
 datastore = app.security.datastore
 cache = app.cache
@@ -15,6 +17,20 @@ def home():
 @cache.cached(timeout = 5)
 def cache_time():
     return {"time" : str(datetime.now())}
+
+@app.route('/celery-test')
+def celery_test():
+    task = add.delay(10, 20)
+    return {"task_id": task.id}, 200
+
+@app.get("/get_celery_test_data/<id>")
+def get_test_data(id):
+    my_result = AsyncResult(id)
+
+    if my_result.ready():
+        return {"result": my_result.result}
+    else:
+        return {"msg": "Task not ready"}, 405
 
 
 service_fields = {
@@ -71,12 +87,6 @@ def complete(req_id):
     db.session.commit()
     
     return {"msg": "Updated Successfully"}, 200
-
-
-@app.get('/cache')
-# @cache.cached(timeout = 5)
-def celery():
-    return {'time' : str(datetime.now())}
 
 @app.get('/protected')
 @auth_required('token')
