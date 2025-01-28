@@ -12,12 +12,16 @@ def createApp():
     # model init
     db.init_app(app)
 
+    # cache init
+    cache = Cache(app)
+
     # flask_restful_init
     api.init_app(app)
 
     #flask security
     datastore = SQLAlchemyUserDatastore(db, User, Role)
 
+    app.cache = cache
     app.security = Security(app, datastore=datastore, register_blueprint= False)
     app.app_context().push()
 

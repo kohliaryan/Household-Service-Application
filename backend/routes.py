@@ -1,14 +1,36 @@
 from flask import current_app as app, jsonify, render_template,  request, send_file
 from flask_security import auth_required, verify_password, hash_password, current_user
 from flask_restful import fields, marshal_with
-from backend.models import Customer, Professional, Request, User, UserRoles, db, make_user_customer, make_user_professional
+from backend.models import Customer, Professional, Request, Service, User, UserRoles, db, make_user_customer, make_user_professional
 from datetime import datetime
 
 datastore = app.security.datastore
-# cache = app.cache
+cache = app.cache
+
 @app.get('/')
 def home():
     return render_template('index.html')
+
+@app.get('/cache')
+@cache.cached(timeout = 5)
+def cache_time():
+    return {"time" : str(datetime.now())}
+
+
+service_fields = {
+    'id': fields.Integer,
+    'name': fields.String,
+    'price': fields.Integer,
+    'time_required': fields.Integer,
+    'description': fields.String
+}
+
+@app.get('/api/services')
+@cache.cached(timeout=120)  # Cache the result for 120 seconds
+@marshal_with(service_fields)
+def services():
+    services = Service.query.all()
+    return services
 
 @app.get('/api/profreview/<int:prof_id>')
 @auth_required('token')
@@ -45,7 +67,7 @@ def complete(req_id):
         return {"msg": "Request is not assigned"}, 400
     
     request.service_status = "completed"
-    request.date_of_completion = datetime.utcnow()  
+    request.date_of_completion = datetime.now()  
     db.session.commit()
     
     return {"msg": "Updated Successfully"}, 200

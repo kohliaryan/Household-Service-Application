@@ -1,9 +1,9 @@
 from datetime import datetime
-from flask import jsonify, request
+from flask import jsonify, request, current_app as app
 from flask_restful import Api, Resource, fields, marshal_with
 from flask_security import auth_required, current_user
 from backend.models import Customer, Professional, Service, User, db, Request, UserRoles, make_user_professional
-
+# cache = app.cache
 api = Api(prefix='/api')
 
 service_fields = {
@@ -17,6 +17,7 @@ service_fields = {
 class ServiceAPI(Resource):
 
     @marshal_with(service_fields)
+    # @cache.memoize()
     def get(self, service_id):
         service = Service.query.get(service_id)
         return service
@@ -72,11 +73,6 @@ class ServiceAPI(Resource):
     
 
 class ServiceListAPI(Resource):
-
-    @marshal_with(service_fields)
-    def get(self):
-        services = Service.query.all()
-        return services
     
     @auth_required('token')
     def post(self):
@@ -110,8 +106,10 @@ professional_fields = {
 
 class ProfessionalAPI(Resource):
 
-    @auth_required('token')
+    
     @marshal_with(professional_fields)
+    @auth_required('token')
+    # @cache.memoize()
     def get(self, service_id):
         prof = Professional.query.filter_by(service_id = service_id, accepted= True).all()
         return prof
@@ -274,7 +272,7 @@ class RequestListAPI(Resource):
             return {'msg': 'Professional Not Avaiable'}, 404
         service_id = prof.service_id
         
-        req = Request(service_id= service_id, customer_id= current_user.id, professional_id= professional_id, date_of_request=datetime.utcnow(), service_status= "requested")
+        req = Request(service_id= service_id, customer_id= current_user.id, professional_id= professional_id, date_of_request=datetime.now(), service_status= "requested")
 
         db.session.add(req)
         db.session.commit()
