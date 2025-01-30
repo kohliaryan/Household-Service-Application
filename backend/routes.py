@@ -1,9 +1,10 @@
+import os
 from flask import current_app as app, jsonify, render_template,  request, send_file
 from flask_security import auth_required, verify_password, hash_password, current_user
 from flask_restful import fields, marshal_with
 from backend.models import Customer, Professional, Request, Service, User, UserRoles, db, make_user_customer, make_user_professional
 from datetime import datetime
-from backend.celery.tasks import add
+from backend.celery.tasks import add, create_csv
 from celery.result import AsyncResult
 
 datastore = app.security.datastore
@@ -12,6 +13,31 @@ cache = app.cache
 @app.get('/')
 def home():
     return render_template('index.html')
+
+@app.route('/api/generate-csv', methods=['POST'])
+@auth_required("token")
+def generate_csv():
+    if current_user.email !="aryan@iit.com":
+        return {"msg": "Not Allowed"}, 400
+    task = create_csv.delay()
+    return jsonify({"task_id": task.id, "message": "CSV generation task started"}), 202
+
+@app.get("/get_csv/<id>")
+@auth_required('token')
+def get_csv(id):
+    if current_user.email != "aryan@iit.com":
+        return {"msg": "Not Allowed"}, 403
+    my_result = AsyncResult(id)
+
+    if my_result.ready():
+        filename = f'request_data_{id}.csv'
+        file_path = os.path.join('./backend/celery/user-downloads', filename)
+        if os.path.exists(file_path):
+            return send_file(file_path, as_attachment=True, download_name=filename)
+        else:
+            return {"msg": "File not found"}, 404
+    else:
+        return {"msg": "Task not ready"}, 202
 
 @app.get('/cache')
 @cache.cached(timeout = 5)

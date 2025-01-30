@@ -5,6 +5,7 @@ from flask_security import Security, SQLAlchemyUserDatastore
 from backend.resources import api
 from flask_caching import Cache
 from backend.celery.celery_aryan import celery_init_app
+import flask_excel
 
 def create_app():
     app = Flask(__name__, template_folder='frontend', static_folder='frontend', static_url_path='/static')
@@ -13,6 +14,7 @@ def create_app():
     db.init_app(app)
     cache = Cache(app)
     api.init_app(app)
+    flask_excel.init_excel(app)
 
     datastore = SQLAlchemyUserDatastore(db, User, Role)
     app.cache = cache
