@@ -4,3 +4,4 @@ __pycache__/
 backend/user-downloads/
 .DS_Store
 .idea/
+run.txt

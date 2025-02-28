@@ -25,12 +25,12 @@ def create_app():
 
     with app.app_context():
         import backend.routes
+        import backend.create_initial_data
+        import backend.celery.celery_schedule  # Yahan celery_schedule ko import kiya gaya hai
         celery_app.autodiscover_tasks(['backend.celery'])
 
-    return app
-
-app = create_app()
-celery_app = app.celery_app
+    return app, celery_app
 
 if __name__ == '__main__':
+    app, _ = create_app()
     app.run()

@@ -1,8 +1,8 @@
 import os
 from celery import shared_task
 import time
-
 import flask_excel
+from backend.celery.mail_service import send_email
 from backend.models import Request
 
 @shared_task(ignore_result=False)
@@ -28,3 +28,7 @@ def create_csv(self):
     except Exception as e:
         print(f"Error creating CSV: {str(e)}")
         return None
+    
+@shared_task(ignore_result = True)
+def email_reminder(to, sub, content):
+    send_email(to, sub, content)
