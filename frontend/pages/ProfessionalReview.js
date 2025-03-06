@@ -37,8 +37,8 @@ export default {
   
         if (res.ok) {
           const data = await res.json();
-          this.professionalName = data[0].Professional; // First item contains the professional name
-          this.reviews = data.slice(1); // Remaining items are reviews
+          this.professionalName = data[0].Professional;
+          this.reviews = data.slice(1);
         } else {
           console.error("Failed to fetch reviews.");
         }

@@ -26,7 +26,7 @@ export default {
                 class="btn btn-success mt-2">
                 Mark as Completed
               </button>
-              <!-- Show date of completion and review button for completed requests -->
+              <!-- Showing date of completion and review button -->
               <div v-else-if="request.service_status === 'completed'" class="mt-3">
                 <p class="text-success">
                   <strong>Date of Completion:</strong> {{ formatDate(request.date_of_completion) }}
@@ -63,7 +63,7 @@ export default {
         this.requests = await res.json();
       } else {
         const error = await res.json();
-        alert(error.msg); // Show error message
+        alert(error.msg); 
       }
     } catch (err) {
       console.error("Error:", err);
@@ -100,7 +100,7 @@ export default {
           );
         } else {
           const error = await res.json();
-          alert(error.msg); // Show error message
+          alert(error.msg); 
         }
       } catch (err) {
         console.error("Error:", err);
@@ -108,7 +108,7 @@ export default {
       }
     },
     writeReview(requestId) {
-      // Redirect to the review page dynamically
+      // Redirect 
       this.$router.push(`/review/${requestId}`);
     },
   },

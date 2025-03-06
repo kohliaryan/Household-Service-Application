@@ -2,9 +2,9 @@ export default {
   props: ["id"],
   template: `
     <div class="container my-5">
-      <h2 class="text-center text-primary mb-4">Professionals</h2>
+      <h2 class="text-center text-primary mb-4">Availabe Professionals</h2>
       
-      <!-- Search Box -->
+      <!-- Search Box for Professionals -->
       <div class="mb-4">
         <input 
           type="text" 
@@ -14,7 +14,7 @@ export default {
         />
       </div>
 
-      <!-- Professionals List -->
+      <!-- Professionals List Starts from Here -->
       <div class="row">
         <div 
           v-for="professional in filteredProfessionals" 
@@ -26,7 +26,7 @@ export default {
               <p class="card-text">
                 <strong>Address:</strong> {{ professional.address }}<br>
                 <strong>Pincode:</strong> {{ professional.pincode }}<br>
-                <strong>Experience:</strong> {{ professional.experience }}<br>
+                <strong>Experience:</strong> {{ professional.experience }} years<br>
                 <strong>Description:</strong> {{ professional.description }}
               </p>
               <button 

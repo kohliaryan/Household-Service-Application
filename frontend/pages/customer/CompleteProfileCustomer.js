@@ -53,7 +53,6 @@ export default {
   methods: {
     async completeCustomerProfile() {
       try {
-        // Construct the request payload
         const payload = {
           name: this.name,
           pincode: this.pincode,
@@ -61,14 +60,13 @@ export default {
           user_id: this.user_id,
         };
 
-        // Make the API call
         const response = await fetch(
           `${location.origin}/api/customerComplete`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${this.authToken}`, // Include the auth token from Vuex
+              Authorization: `Bearer ${this.authToken}`, 
             },
             body: JSON.stringify(payload),
           }
@@ -76,10 +74,9 @@ export default {
 
         const data = await response.json();
 
-        // Check the response
         if (response.ok) {
           alert("Profile completed successfully!");
-          // Redirect to the dashboard or any other page
+          // Redirecting to the home page
           this.$router.push("/");
         } else {
           alert(data.msg || "Failed to complete profile.");

@@ -4,7 +4,7 @@ export default {
         <h1 class="text-center mb-4">Manage Requests</h1>
         
         <div v-if="requests.length === 0" class="text-center">
-          <p>No requests available.</p>
+          <p>Waiting for requests...</p>
         </div>
   
         <div v-else>

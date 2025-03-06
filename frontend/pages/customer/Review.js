@@ -22,7 +22,7 @@ export default {
             {{ isSubmitting ? "Submitting..." : "Submit Review" }}
           </button>
   
-          <!-- Feedback Section -->
+          <!-- Feedback Section (Added Section) -->
           <div v-if="feedbackMessage" class="alert mt-3" :class="feedbackClass">
             {{ feedbackMessage }}
           </div>
@@ -31,14 +31,14 @@ export default {
     `,
     data() {
       return {
-        review: "", // Stores the current review
-        feedbackMessage: "", // Stores feedback messages for the user
-        feedbackClass: "", // Bootstrap alert class based on success or error
-        isSubmitting: false, // To prevent multiple submissions
+        review: "", 
+        feedbackMessage: "", 
+        feedbackClass: "",
+        isSubmitting: false, 
       };
     },
     async mounted() {
-      const requestId = this.$route.params.id; // Fetch the request ID dynamically
+      const requestId = this.$route.params.id; 
       try {
         const response = await fetch(`${location.origin}/api/review/${requestId}`, {
           headers: {
@@ -48,7 +48,7 @@ export default {
   
         if (response.ok) {
           const data = await response.json();
-          this.review = data.remark; // Populate review if it exists
+          this.review = data.remark; 
         } else {
           this.feedbackMessage = "No existing review found.";
           this.feedbackClass = "alert-warning";
@@ -64,7 +64,7 @@ export default {
         if (this.isSubmitting) return;
         this.isSubmitting = true;
   
-        const requestId = this.$route.params.id; // Dynamically get the request ID
+        const requestId = this.$route.params.id; 
         try {
           const response = await fetch(`${location.origin}/api/review/${requestId}`, {
             method: "POST",
@@ -88,7 +88,7 @@ export default {
           this.feedbackMessage = "An unexpected error occurred. Please try again.";
           this.feedbackClass = "alert-danger";
         } finally {
-          this.isSubmitting = false; // Reset the button state
+          this.isSubmitting = false; 
         }
       },
     },

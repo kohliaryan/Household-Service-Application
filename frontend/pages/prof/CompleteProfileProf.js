@@ -174,7 +174,7 @@ export default {
 
         if (response.ok) {
           alert("Profile completed successfully!");
-          this.$router.push("/profDashboard");
+          this.$router.push("/reqManagement");
         } else {
           alert(data.message || "Failed to complete the profile.");
         }

@@ -58,7 +58,7 @@ export default {
         // Fetch the customer's data from the backend
         async fetchCustomerData() {
             try {
-                const token = this.$store.state.auth_token; // Retrieve token from $store
+                const token = this.$store.state.auth_token; 
                 const response = await fetch("/api/cust", {
                     headers: {
                         "Authorization": `${token}`
@@ -66,7 +66,7 @@ export default {
                 });
                 if (!response.ok) throw new Error("Failed to fetch customer data");
                 const data = await response.json();
-                this.customer = data; // Populate the customer object with the data
+                this.customer = data; 
             } catch (error) {
                 this.errorMessage = "Unable to load profile data.";
                 console.error(error);
@@ -97,6 +97,6 @@ export default {
         }
     },
     mounted() {
-        this.fetchCustomerData(); // Fetch data when the component is mounted
+        this.fetchCustomerData(); 
     }
 };

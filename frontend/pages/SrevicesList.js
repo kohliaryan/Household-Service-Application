@@ -3,9 +3,9 @@ import ServicsCard from "../components/ServicsCard.js";
 export default {
   template: `
     <div>
-      <h1 class="mb-4">Service List</h1>
+      <h1 class="mb-4">Choose From Our Services</h1>
       
-      <!-- Search Box -->
+      <!-- Search Box for Services -->
       <div class="mb-4">
         <input 
           type="text" 
@@ -15,7 +15,7 @@ export default {
         />
       </div>
 
-      <!-- Services List -->
+      <!-- Services List Starts from Here -->
       <div v-if="filteredServices.length > 0">
         <ServicsCard 
           v-for="service in filteredServices" 
@@ -36,13 +36,12 @@ export default {
   `,
   data() {
     return {
-      services: [], // All services fetched from the backend
-      searchQuery: "", // User's search input
+      services: [], 
+      searchQuery: "", 
     };
   },
   computed: {
     filteredServices() {
-      // "Contains" logic: If searchQuery is empty, return all services
       return this.services.filter((service) =>
         service.name.toLowerCase().includes(this.searchQuery.toLowerCase())
       );
@@ -51,10 +50,10 @@ export default {
   async mounted() {
     try {
       const res = await fetch(location.origin + "/api/services");
-      this.services = await res.json(); // Store fetched services
-      console.log("Fetched Services:", this.services); // Debugging
+      this.services = await res.json(); 
+      console.log("Fetched Services:", this.services); 
     } catch (error) {
-      console.error("Error fetching services:", error); // Handle errors
+      console.error("Error fetching services:", error); 
     }
   },
   components: {
