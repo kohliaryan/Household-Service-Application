@@ -218,6 +218,8 @@ class RequestListAPI(Resource):
         if not req:
             return {"msg": "Request not found"}, 404
 
+        if req.service_status != "requested":
+            return {"msg": "Request cannot be deleted as it is in the process state already"}, 400
         # Delete the request
         db.session.delete(req)
         db.session.commit()
@@ -361,7 +363,7 @@ class ReviewAPI(Resource):
 api.add_resource(ServiceAPI, '/services/<int:service_id>')
 api.add_resource(ServiceListAPI, '/services')
 api.add_resource(RequestListAPI, '/request') # Used to see all requests to customers and also to Post request and also by professional to delete or accept a particular request
-api.add_resource(AdminListAPI, '/unprof') # Used by admin to see all customer
+api.add_resource(AdminListAPI, '/unprof') 
 api.add_resource(ProfessionalListAPI, "/prof") # Used to see all accepted professional to customers
 api.add_resource(ProfessionalAPI, '/prof/<int:service_id>') # Used to see all accepted professional to customers for that particular service
 api.add_resource(CustomerAPI, '/cust')

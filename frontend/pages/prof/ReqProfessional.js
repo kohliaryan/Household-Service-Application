@@ -36,6 +36,7 @@ export default {
                     Accept
                   </button>
                   <button 
+                  v-if="request.service_status === 'requested'" 
                     @click="deleteRequest(request.id)" 
                     class="btn btn-danger btn-sm">
                     Delete

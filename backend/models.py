@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import UserMixin, RoleMixin
 from datetime import datetime
+from sqlalchemy import func, case
 
 db = SQLAlchemy()
 
@@ -174,3 +175,38 @@ def add_service_request(service_id, customer_id, professional_id=None, remarks=N
     db.session.add(new_request)
     db.session.commit()  # Save changes to the database
     return new_request
+
+def get_data_by_email(prof_email):
+    """Returns request statistics for a professional using their email"""
+    # First get the user/professional ID from email
+    user = User.query.filter_by(email=prof_email).first()
+    if not user or not user.professional:
+        return {
+            'total_requests': 0,
+            'completed_requests': 0,
+            'requested_requests': 0,
+            'assigned_requests': 0
+        }
+
+    # Now use the professional's user ID
+    stats = db.session.query(
+        func.count(Request.id).label('total'),
+        func.sum(
+            case((Request.service_status == 'completed', 1), else_=0)
+        ).label('completed'),
+        func.sum(
+            case((Request.service_status == 'requested', 1), else_=0)
+        ).label('requested'),
+        func.sum(
+            case((Request.service_status == 'assigned', 1), else_=0)
+        ).label('assigned')
+    ).filter(
+        Request.professional_id == user.id
+    ).first()
+
+    return {
+        'total_requests': stats.total or 0,
+        'completed_requests': stats.completed or 0,
+        'requested_requests': stats.requested or 0,
+        'assigned_requests': stats.assigned or 0
+    }

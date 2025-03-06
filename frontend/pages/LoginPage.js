@@ -59,6 +59,9 @@ export default {
           this.$store.commit('setUser');
           this.$router.push('/');
         }
+        else{
+          alert('Invalid Credentials');
+        }
       },
     },
   };

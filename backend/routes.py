@@ -74,6 +74,14 @@ def services():
     services = Service.query.all()
     return services
 
+@app.get('/api/name_service')
+def name_service():
+    res = {}
+    services = Service.query.all()
+    for service in services:
+        res[service.id] = service.name
+    return res
+
 @app.get('/api/profreview/<int:prof_id>')
 @auth_required('token')
 def profreview(prof_id):

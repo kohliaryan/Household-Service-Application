@@ -11,7 +11,7 @@ export default {
 
         <router-link v-if="$store.state.loggedIn && $store.state.role == 'Customer'" class="nav-link text-white" to="/custProfile">Profile</router-link>
 
-        <router-link v-if="$store.state.loggedIn && $store.state.role == 'Professional'" class="nav-link text-white" to="/profDashboard">Dashboard</router-link>
+        <router-link v-if="$store.state.loggedIn && $store.state.role == 'Professional'" class="nav-link text-white" to="/reqManagement">Dashboard</router-link>
         <button class="btn btn-secondary ms-2" v-if="$store.state.loggedIn" @click="$store.commit('logout')">Logout</button>
       </div>
     </nav>
