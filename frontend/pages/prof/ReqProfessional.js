@@ -65,7 +65,7 @@ export default {
           this.requests = await res.json();
         } else {
           const error = await res.json();
-          alert(error.msg); // Show error message
+          alert(error.msg); 
         }
       } catch (err) {
         console.error("Error:", err);
@@ -79,7 +79,7 @@ export default {
       },
       statusClass(status) {
         if (status === "requested") return "text-warning";
-        if (status === "in-progress") return "text-primary";
+        if (status === "assigned") return "text-primary";
         if (status === "completed") return "text-success";
         return "text-danger";
       },
@@ -99,11 +99,11 @@ export default {
           if (res.ok) {
             alert("Request accepted successfully!");
             this.requests = this.requests.map((req) =>
-              req.id === requestId ? { ...req, service_status: "in-progress" } : req
+              req.id === requestId ? { ...req, service_status: "assigned" } : req
             );
           } else {
             const error = await res.json();
-            alert(error.msg); // Show error message
+            alert(error.msg); 
           }
         } catch (err) {
           console.error("Error:", err);
@@ -128,7 +128,7 @@ export default {
             this.requests = this.requests.filter((req) => req.id !== requestId);
           } else {
             const error = await res.json();
-            alert(error.msg); // Show error message
+            alert(error.msg); 
           }
         } catch (err) {
           console.error("Error:", err);

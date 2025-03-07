@@ -27,6 +27,9 @@ export default {
                                 <router-link :to="'/editService/' + service.id" class="btn btn-primary btn-sm">
                                     Edit
                                 </router-link>
+                                <button @click="deleteService(service.id)" class="btn btn-danger btn-sm ms-2">
+                                    Delete
+                                </button>
                             </td>
                         </tr>
                     </tbody>
@@ -45,33 +48,53 @@ export default {
     `,
     data() {
         return {
-            services: [], // To store fetched services
-            loading: false, // To show/hide the loading spinner
-            error: false, // To handle errors
+            services: [],
+            loading: false,
+            error: false,
         };
     },
     methods: {
         async fetchServices() {
-            this.loading = true; // Show the loading spinner
-            this.error = false; // Reset the error state
-
+            this.loading = true;
+            this.error = false;
             try {
-                const response = await fetch("http://127.0.0.1:5000/api/services");
-
-                if (!response.ok) {
-                    throw new Error("Failed to fetch services");
-                }
-                const data = await response.json();
-                this.services = data; // Populate services data
+                const response = await fetch(`${location.origin}/api/services`);
+                if (!response.ok) throw new Error("Failed to fetch services");
+                this.services = await response.json();
             } catch (err) {
                 console.error(err);
-                this.error = true; // Show the error message
+                this.error = true;
             } finally {
-                this.loading = false; // Hide the loading spinner
+                this.loading = false;
             }
         },
+
+        async deleteService(serviceId) {
+            if (!confirm("Note: This will delete the professional and all associated requests. Do you want to continue?")) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${location.origin}/api/services/${serviceId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: this.$store.state.auth_token,
+                        "Content-Type": "application/json",
+                      }
+                });
+
+                if (!response.ok) throw new Error('Failed to delete service');
+                
+                // Remove the deleted service from the local list
+                this.services = this.services.filter(service => service.id !== serviceId);
+                alert('Service deleted successfully!');
+            } catch (err) {
+                console.error(err);
+                alert('Failed to delete service. Please try again.');
+            }
+        }
     },
     created() {
-        this.fetchServices(); // Fetch services when the component is created
+        this.fetchServices();
     },
 };

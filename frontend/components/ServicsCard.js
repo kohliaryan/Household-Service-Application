@@ -6,7 +6,6 @@ export default {
           <div class="card shadow-lg">
             <div class="card-body">
               <h5 class="card-title text-primary">{{ name }}</h5>
-              <strong>Service Id:</strong> {{ id }}
               <p class="card-text">
               
                 <strong>Description:</strong> {{ description }}

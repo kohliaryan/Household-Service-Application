@@ -55,23 +55,40 @@ class ServiceAPI(Resource):
             db.session.rollback()
             return {"msg": "Failed to update service", "error": str(e)}, 500
 
-
     @auth_required('token')
     def delete(self, service_id):
-        if current_user.email != "aryan@iit.com":
-            return {"msg": "Not Allowed"}, 403
-        
-        service = Service.query.get(service_id)
+        try:
+            # Delete all related requests
+            requests = Request.query.filter_by(service_id=service_id).all()
+            for request in requests:
+                db.session.delete(request)
 
-        if not service:
-            return {"msg": "Service not found"}, 404
-        
-        db.session.delete(service)
-        db.session.commit()
-        return {"msg": "Service Deleted Successfully"}, 200
-    
-    
+            # Process professionals linked to the service
+            professionals = Professional.query.filter_by(service_id=service_id).all()
+            for professional in professionals:
+                user_id = professional.id
+                
+                # Remove user roles (many-to-many relationship)
+                UserRoles.query.filter_by(user_id=user_id).delete()
+                
+                # Delete the professional and their user account
+                db.session.delete(professional)
+                user = User.query.get(user_id)
+                if user:
+                    db.session.delete(user)
 
+            # Finally, delete the service
+            service = Service.query.get(service_id)
+            if service:
+                db.session.delete(service)
+            
+            db.session.commit()
+            return {"msg": "Service deleted successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"msg": "Failed to delete service"}, 500
+
+    
 class ServiceListAPI(Resource):
     
     @auth_required('token')

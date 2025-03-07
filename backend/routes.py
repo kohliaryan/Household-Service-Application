@@ -68,7 +68,7 @@ service_fields = {
 }
 
 @app.get('/api/services')
-@cache.cached(timeout=120)  # Cache the result for 120 seconds
+@cache.cached(timeout=10)
 @marshal_with(service_fields)
 def services():
     services = Service.query.all()

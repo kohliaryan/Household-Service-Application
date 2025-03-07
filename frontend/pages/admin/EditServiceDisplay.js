@@ -84,7 +84,7 @@ export default {
       this.loading = true;
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/api/services/${this.$route.params.id}`
+          `${location.origin}/api/services/${this.$route.params.id}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch service details");
@@ -106,7 +106,7 @@ export default {
       this.loading = true;
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/api/services/${this.service.id}`,
+          `${location.origin}/api/services/${this.service.id}`,
           {
             method: "PUT",
             headers: {
