@@ -15,10 +15,9 @@ def get_users_with_role_2():
 
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
-    # every 10 seconds
     profs = get_users_with_role_2()
     for prof in profs:
-        sender.add_periodic_task(crontab(hour=14, minute=24), email_reminder.s(prof, 'Reminder to Log In', '<h1> Log In to HouseHold Service App </h1>') )
+        sender.add_periodic_task(crontab(hour=10, minute=57), email_reminder.s(prof, 'Reminder to Log In', '<h1> Log In to HouseHold Service App </h1>') )
 
     for prof in profs:
         data = get_data_by_email(prof)
@@ -27,7 +26,7 @@ def setup_periodic_tasks(sender, **kwargs):
         requested_requests = data['requested_requests']
         assigned_requests = data['assigned_requests']
 
-        sender.add_periodic_task(crontab(hour=15, minute=2), email_reminder.s(prof, 'Montly Report', 
+        sender.add_periodic_task(crontab(hour=10, minute=57), email_reminder.s(prof, 'Montly Report', 
 f'''
 <h2>Hello Professional,</h2>
 <p>These are your service statistics until this month:</p>

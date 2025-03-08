@@ -51,8 +51,8 @@ export default {
   `,
   data() {
     return {
-      professionals: [], // All professionals fetched from the backend
-      searchQuery: "", // User's input for searching by pincode
+      professionals: [],
+      searchQuery: "",
     };
   },
   computed: {

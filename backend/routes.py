@@ -117,7 +117,7 @@ def complete(req_id):
         return {"msg": "Request is not assigned"}, 400
     
     request.service_status = "completed"
-    request.date_of_completion = datetime.now()  
+    request.date_of_completion = datetime.utcnow()  
     db.session.commit()
     
     return {"msg": "Updated Successfully"}, 200

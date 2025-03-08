@@ -77,7 +77,7 @@ export default {
     },
     statusClass(status) {
       if (status === "requested") return "text-warning";
-      if (status === "in-progress") return "text-primary";
+      if (status === "assigned") return "text-primary";
       if (status === "completed") return "text-success";
       return "text-danger";
     },

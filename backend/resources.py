@@ -3,7 +3,6 @@ from flask import jsonify, request, current_app as app
 from flask_restful import Api, Resource, fields, marshal_with
 from flask_security import auth_required, current_user
 from backend.models import Customer, Professional, Service, User, db, Request, UserRoles, make_user_professional
-# cache = app.cache
 api = Api(prefix='/api')
 
 service_fields = {
@@ -24,22 +23,18 @@ class ServiceAPI(Resource):
         
     @auth_required('token')
     def put(self, service_id):
-        # Check if user is authorized
         if current_user.email != "aryan@iit.com":
             return {"msg": "Not Allowed"}, 403
 
-        # Parse request data
         data = request.get_json()
         description = data.get("description")
         price = data.get("price")
         time_required = data.get("time_required")
 
-        # Find the service by ID
         service = Service.query.get(service_id)
         if not service:
             return {"msg": "Service not found"}, 404
 
-        # Update the service details
         if description:
             service.description = description
         if price:
@@ -47,7 +42,6 @@ class ServiceAPI(Resource):
         if time_required:
             service.time_required = time_required
 
-        # Commit the changes to the database
         try:
             db.session.commit()
             return {"msg": "Updated Successfully"}, 200
@@ -58,26 +52,21 @@ class ServiceAPI(Resource):
     @auth_required('token')
     def delete(self, service_id):
         try:
-            # Delete all related requests
             requests = Request.query.filter_by(service_id=service_id).all()
             for request in requests:
                 db.session.delete(request)
 
-            # Process professionals linked to the service
             professionals = Professional.query.filter_by(service_id=service_id).all()
             for professional in professionals:
                 user_id = professional.id
                 
-                # Remove user roles (many-to-many relationship)
                 UserRoles.query.filter_by(user_id=user_id).delete()
                 
-                # Delete the professional and their user account
                 db.session.delete(professional)
                 user = User.query.get(user_id)
                 if user:
                     db.session.delete(user)
 
-            # Finally, delete the service
             service = Service.query.get(service_id)
             if service:
                 db.session.delete(service)
@@ -173,7 +162,6 @@ class RequestListAPI(Resource):
     def get(self):
         role = UserRoles.query.filter_by(user_id=current_user.id).first()
         if role.role_id == 3:
-        # Query all requests for the current user
             requests = Request.query.filter_by(customer_id=current_user.id).all()
         elif role.role_id == 2:
             requests = Request.query.filter_by(professional_id=current_user.id).all()
@@ -182,23 +170,19 @@ class RequestListAPI(Resource):
 
         result = []
         for req in requests:
-            # Get service details
             service = Service.query.filter_by(id=req.service_id).first()
             service_name = service.name if service else None
 
-            # Get professional details
             professional = Professional.query.filter_by(id=req.professional_id).first()
             if not professional:
                 return {"remark": "Uncompleted Profile"}, 400
             professional_name = professional.name
 
-            # Get customer address details:
             customer = Customer.query.filter_by(id=req.customer_id).first()
             if not customer:
                 return {"remark": "Uncompleted Customer Profile"}, 400
             customer_address = customer.address
 
-            # Append request data with service and professional names
             result.append({
                 "id": req.id,
                 "service_id": req.service_id,
@@ -217,19 +201,16 @@ class RequestListAPI(Resource):
     
     @auth_required('token')
     def delete(self):
-        # Check if the user has the appropriate role
         role = UserRoles.query.filter_by(user_id=current_user.id).first()
-        if role.role_id != 2:  # Assuming role_id 2 is authorized to delete requests
+        if role.role_id != 2: 
             return {"msg": "Not Allowed"}, 400
 
-        # Get the request ID from the JSON payload
         data = request.get_json()
         request_id = data.get('request_id')
 
         if not request_id:
             return {"msg": "Request ID is required"}, 400
 
-        # Query the request
         req = Request.query.filter_by(id=request_id).first()
 
         if not req:
@@ -237,7 +218,6 @@ class RequestListAPI(Resource):
 
         if req.service_status != "requested":
             return {"msg": "Request cannot be deleted as it is in the process state already"}, 400
-        # Delete the request
         db.session.delete(req)
         db.session.commit()
 
@@ -249,24 +229,20 @@ class RequestListAPI(Resource):
         if role.id == 2:  
             return {"msg": "Not Allowed"}, 400
 
-        # Get the request ID from the JSON payload
         data = request.get_json()
         request_id = data.get('request_id')
 
         if not request_id:
             return {"msg": "Request ID is required"}, 400
 
-        # Query the request
         req = Request.query.filter_by(id=request_id).first()
 
         if not req:
             return {"msg": "Request not found"}, 404
 
-        # Ensure the request is in a valid state for accepting
         if req.service_status != "requested":
             return {"msg": "Request cannot be accepted as it is not in the 'requested' state"}, 400
 
-        # Assign the current user (professional) to the request
         req.professional_id = current_user.id
         req.service_status = "assigned"
 
@@ -291,7 +267,7 @@ class RequestListAPI(Resource):
             return {'msg': 'Professional Not Avaiable'}, 404
         service_id = prof.service_id
         
-        req = Request(service_id= service_id, customer_id= current_user.id, professional_id= professional_id, date_of_request=datetime.now(), service_status= "requested")
+        req = Request(service_id= service_id, customer_id= current_user.id, professional_id= professional_id, date_of_request=datetime.utcnow(), service_status= "requested")
 
         db.session.add(req)
         db.session.commit()
@@ -379,9 +355,9 @@ class ReviewAPI(Resource):
 
 api.add_resource(ServiceAPI, '/services/<int:service_id>')
 api.add_resource(ServiceListAPI, '/services')
-api.add_resource(RequestListAPI, '/request') # Used to see all requests to customers and also to Post request and also by professional to delete or accept a particular request
+api.add_resource(RequestListAPI, '/request')
 api.add_resource(AdminListAPI, '/unprof') 
-api.add_resource(ProfessionalListAPI, "/prof") # Used to see all accepted professional to customers
-api.add_resource(ProfessionalAPI, '/prof/<int:service_id>') # Used to see all accepted professional to customers for that particular service
+api.add_resource(ProfessionalListAPI, "/prof") 
+api.add_resource(ProfessionalAPI, '/prof/<int:service_id>') 
 api.add_resource(CustomerAPI, '/cust')
 api.add_resource(ReviewAPI, "/review/<int:request_id>")
